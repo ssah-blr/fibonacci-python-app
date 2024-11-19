@@ -5,6 +5,7 @@ pool:
   name: 'mac-self'
 
 variables:
+- dockerRegistryServiceConnection: '802174ef-6ca4-4d48-a26a-0f65baf3ea19'
 - group: DockerCredentials  # Reference the variable group
 - name: DOCKER_REGISTRY
   value: 'docker.io'
@@ -26,7 +27,7 @@ steps:
 - task: Docker@2
   displayName: Log in to Docker registry
   inputs:
-    containerRegistry: 'Docker-service-conn' # The name of your service connection
+    containerRegistry: $(dockerRegistryServiceConnection) # The name of your service connection
     command: 'login'
 
 # 3. Build Docker image
@@ -43,7 +44,7 @@ steps:
   displayName: "Push Docker image"
   inputs:
     command: push
-    containerRegistry: 'Docker-service-conn'  # Use a variable for the registry
+    containerRegistry: $(dockerRegistryServiceConnection)  # Use a variable for the registry
     repository: $(DOCKER_REPO)
     tags: |
       $(Build.BuildId)
