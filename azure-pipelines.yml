@@ -9,7 +9,7 @@ variables:
 
 steps:
 # 1. Checkout code
-- task: Checkout@1
+# - task: Checkout@1
 
 - script: |
     echo "Testing Variables:"
