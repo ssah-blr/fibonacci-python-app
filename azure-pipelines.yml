@@ -11,11 +11,12 @@ steps:
 # 1. Checkout code
 - task: Checkout@1
 
-# 2. Test variable values (for debugging purposes)
 - script: |
     echo "Testing Variables:"
     echo "DOCKER_USERNAME: $(DOCKER_USERNAME)"
     echo "DOCKER_PASSWORD: (hidden)"
+    if [ -z "$(DOCKER_USERNAME)" ]; then echo "DOCKER_USERNAME is missing!"; exit 1; fi
+    if [ -z "$(DOCKER_PASSWORD)" ]; then echo "DOCKER_PASSWORD is missing!"; exit 1; fi
   displayName: "Test variable values"
 
 # # 3. Build Docker image
