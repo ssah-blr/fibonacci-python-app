@@ -6,6 +6,10 @@ pool:
 
 variables:
 - group: DockerCredentials  # Reference the variable group
+- name: DOCKER_REGISTRY
+  value: 'docker.io'
+- name: DOCKER_REPO
+  value: 'ssahblr/python-app'
 
 steps:
 # 1. Checkout code
