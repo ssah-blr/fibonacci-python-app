@@ -5,7 +5,8 @@ pool:
   name: 'mac-self'
 
 variables:
-- dockerRegistryServiceConnection: '802174ef-6ca4-4d48-a26a-0f65baf3ea19'
+- name: dockerRegistryServiceConnection
+  value: '802174ef-6ca4-4d48-a26a-0f65baf3ea19'
 - group: DockerCredentials  # Reference the variable group
 - name: DOCKER_REGISTRY
   value: 'docker.io'
