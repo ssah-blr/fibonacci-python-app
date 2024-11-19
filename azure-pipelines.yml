@@ -2,7 +2,7 @@ trigger:
 - main  # Replace 'main' with your branch name if different
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'mac-self'
 
 steps:
 - script: echo "Hello, World!"
