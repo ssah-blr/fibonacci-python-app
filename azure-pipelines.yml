@@ -1,40 +1,9 @@
 trigger:
-- main
+- main  # Replace 'main' with your branch name if different
 
 pool:
-  name: 'Default'
-
-variables:
-- group: DockerCredentials  # Reference the variable group
+  vmImage: 'ubuntu-latest'
 
 steps:
-# 1. Checkout code
-# - task: Checkout@1
-
-- script: |
-    echo "Testing Variables:"
-    echo "DOCKER_USERNAME: $(DOCKER_USERNAME)"
-    echo "DOCKER_PASSWORD: (hidden)"
-    if [ -z "$(DOCKER_USERNAME)" ]; then echo "DOCKER_USERNAME is missing!"; exit 1; fi
-    if [ -z "$(DOCKER_PASSWORD)" ]; then echo "DOCKER_PASSWORD is missing!"; exit 1; fi
-  displayName: "Test variable values"
-
-# # 3. Build Docker image
-# - task: Docker@2
-#   displayName: "Build Docker image"
-#   inputs:
-#     command: build
-#     Dockerfile: Dockerfile
-#     tags: |
-#       $(DOCKER_REPO):$(Build.BuildId)
-
-# # 4. Push Docker image
-# - task: Docker@2
-#   displayName: "Push Docker image"
-#   inputs:
-#     command: push
-#     containerRegistry: $(DOCKER_REGISTRY)  # Use a variable for the registry
-#     repository: $(DOCKER_REPO)
-#     tags: |
-#       $(Build.BuildId)
-#     containerRegistryEndpoint: $(DOCKER_USERNAME):$(DOCKER_PASSWORD) # Direct authentication
+- script: echo "Hello, World!"
+  displayName: 'Print Hello World'
