@@ -18,14 +18,14 @@ steps:
     echo "DOCKER_PASSWORD: (hidden)"
   displayName: "Test variable values"
 
-# 3. Build Docker image
-- task: Docker@2
-  displayName: "Build Docker image"
-  inputs:
-    command: build
-    Dockerfile: Dockerfile
-    tags: |
-      $(DOCKER_REPO):$(Build.BuildId)
+# # 3. Build Docker image
+# - task: Docker@2
+#   displayName: "Build Docker image"
+#   inputs:
+#     command: build
+#     Dockerfile: Dockerfile
+#     tags: |
+#       $(DOCKER_REPO):$(Build.BuildId)
 
 # # 4. Push Docker image
 # - task: Docker@2
