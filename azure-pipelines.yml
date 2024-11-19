@@ -28,7 +28,7 @@ steps:
 - task: Docker@2
   displayName: Log in to Docker registry
   inputs:
-    containerRegistry: $(dockerRegistryServiceConnection) # The name of your service connection
+    containerRegistry: 'Docker-service-conn' # The name of your service connection
     command: 'login'
 
 # 3. Build Docker image
@@ -45,7 +45,7 @@ steps:
   displayName: "Push Docker image"
   inputs:
     command: push
-    containerRegistry: $(dockerRegistryServiceConnection)  # Use a variable for the registry
+    containerRegistry: 'Docker-service-conn'  # Use a variable for the registry
     repository: $(DOCKER_REPO)
     tags: |
       $(Build.BuildId)
