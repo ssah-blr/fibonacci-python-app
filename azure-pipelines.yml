@@ -43,7 +43,7 @@ steps:
   displayName: "Push Docker image"
   inputs:
     command: push
-    containerRegistry: $(DOCKER_REGISTRY)  # Use a variable for the registry
+    containerRegistry: 'Docker-service-conn'  # Use a variable for the registry
     repository: $(DOCKER_REPO)
     tags: |
       $(Build.BuildId)
