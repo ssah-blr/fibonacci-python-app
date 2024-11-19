@@ -1,13 +1,15 @@
 trigger:
-- main  # Trigger pipeline on pushes to the 'main' branch.
+- main
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-- group: DockerCredentials
-  DOCKER_REGISTRY: 'docker.io'  # Use ghcr.io for GitHub Container Registry
-  DOCKER_REPO: 'ssahblr/python-app'
+- group: DockerCredentials  # Link the variable group
+- name: DOCKER_REGISTRY
+  value: 'docker.io'
+- name: DOCKER_REPO
+  value: 'ssahblr/python-app'
 
 steps:
 # 1. Checkout code
@@ -23,7 +25,7 @@ steps:
 # 3. Security scan using Trivy
 - script: |
     curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -
-    ./trivy image --exit-code 1 --severity HIGH ${DOCKER_REPO}:latest || echo "No vulnerabilities"
+    ./trivy image --exit-code 1 --severity HIGH $(DOCKER_REPO):latest || echo "No vulnerabilities"
   displayName: "Run Trivy security scan"
 
 # 4. Build Docker image
