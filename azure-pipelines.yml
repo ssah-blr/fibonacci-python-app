@@ -22,6 +22,13 @@ steps:
     echo "DOCKER_PASSWORD: (hidden)"
   displayName: "Test variable values"
 
+# Log in to the Docker registry using the service connection
+- task: Docker@2
+  displayName: Log in to Docker registry
+  inputs:
+  containerRegistry: 'Docker-service-conn' # The name of your service connection
+  command: 'login'
+
 # 3. Build Docker image
 - task: Docker@2
   displayName: "Build Docker image"
