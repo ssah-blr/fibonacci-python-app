@@ -26,8 +26,8 @@ steps:
 - task: Docker@2
   displayName: Log in to Docker registry
   inputs:
-  containerRegistry: 'Docker-service-conn' # The name of your service connection
-  command: 'login'
+    containerRegistry: 'Docker-service-conn' # The name of your service connection
+    command: 'login'
 
 # 3. Build Docker image
 - task: Docker@2
