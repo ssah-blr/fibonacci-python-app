@@ -4,6 +4,36 @@ trigger:
 pool:
   name: 'mac-self'
 
+variables:
+- group: DockerCredentials  # Reference the variable group
+
 steps:
-- script: echo "Hello, World!"
-  displayName: 'Print Hello World'
+# 1. Checkout code
+- task: Checkout@1
+
+# 2. Test variable values (for debugging purposes)
+- script: |
+    echo "Testing Variables:"
+    echo "DOCKER_USERNAME: $(DOCKER_USERNAME)"
+    echo "DOCKER_PASSWORD: (hidden)"
+  displayName: "Test variable values"
+
+# 3. Build Docker image
+- task: Docker@2
+  displayName: "Build Docker image"
+  inputs:
+    command: build
+    Dockerfile: Dockerfile
+    tags: |
+      $(DOCKER_REPO):$(Build.BuildId)
+
+# 4. Push Docker image
+- task: Docker@2
+  displayName: "Push Docker image"
+  inputs:
+    command: push
+    containerRegistry: $(DOCKER_REGISTRY)  # Use a variable for the registry
+    repository: $(DOCKER_REPO)
+    tags: |
+      $(Build.BuildId)
+    containerRegistryEndpoint: $(DOCKER_USERNAME):$(DOCKER_PASSWORD) # Direct authentication
