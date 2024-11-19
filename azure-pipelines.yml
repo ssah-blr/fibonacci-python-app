@@ -5,10 +5,9 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
+- group: DockerCredentials
   DOCKER_REGISTRY: 'docker.io'  # Use ghcr.io for GitHub Container Registry
   DOCKER_REPO: 'ssahblr/python-app'
-  DOCKER_USERNAME: $(DOCKER_USERNAME)
-  DOCKER_PASSWORD: $(DOCKER_PASSWORD)
 
 steps:
 # 1. Checkout code
