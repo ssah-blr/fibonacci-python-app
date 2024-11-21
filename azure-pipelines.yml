@@ -92,6 +92,7 @@ stages:
         repository: $(DOCKER_REPO)
         tags: |
           $(Build.BuildId)
+          latest
 
 - stage: ImageScan
   displayName: "Docker Image Scan"
