@@ -91,8 +91,8 @@ stages:
         containerRegistry: 'Docker-service-conn'
         repository: $(DOCKER_REPO)
         tags: |
-          $(Build.BuildId)
-          latest
+          $(DOCKER_REPO):latest
+          $(DOCKER_REPO):$(Build.BuildId)
 
 - stage: ImageScan
   displayName: "Docker Image Scan"
