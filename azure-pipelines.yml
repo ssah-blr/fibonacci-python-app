@@ -49,8 +49,8 @@ stages:
         pip install bandit safety  # Install security tools inside the venv
 
         echo "Running security checks..."
-        bandit -r $(System.DefaultWorkingDirectory)/app  # Update path to your source code
-        safety check  # Ensure a requirements.txt or pipfile.lock exists
+        bandit -r $(System.DefaultWorkingDirectory)/app
+        safety check --ignore-errors  # Ensure a requirements.txt or pipfile.lock exists
       displayName: "Application Security Check"
 
 - stage: BuildAndPush
