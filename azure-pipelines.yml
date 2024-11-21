@@ -13,54 +13,71 @@ variables:
 
 jobs:
 - job: Build_and_Push
+  displayName: "Build and Push Docker Image"
   steps:
-  - script: |
-      echo "Checking out code..."
-      # Replace with your checkout task if needed (e.g., Git Checkout)
-  - task: Python@0  # Installs Python for linting
-    displayName: Install Python for Linting
-    inputs:
-      version: 'latest'
+  # 1. Checkout code
+  - task: Checkout@1
+    displayName: "Checkout Code"
 
+  # 2. Install Python for linting
+  - task: UsePythonVersion@1
+    displayName: "Set up Python environment"
+    inputs:
+      versionSpec: '3.x'
+      addToPath: true
+
+  # 3. Install Python dependencies for linting
+  - script: |
+      python -m pip install --upgrade pip
+      pip install flake8
+    displayName: "Install Python Linting Tool (flake8)"
+
+  # 4. Run Python linter
   - script: |
       echo "Running Python Linter..."
-      cd app
-      # Replace 'python_linter.py' with your actual linter script name
-      python python_linter.py
-  - failOnStderr: true  # Fail pipeline if linting errors occur
+      flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+      flake8 app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    displayName: "Run Python Linter"
+    failOnStderr: true  # Fail pipeline if linting errors occur
 
+  # 5. Download and prepare Trivy for security scanning
   - script: |
       echo "Downloading Trivy for security scanning..."
-      curl -L https://github.com/AquaSecurity/trivy/releases/download/v0.44.0/trivy_$(uname -o)_$(uname -m) -o trivy
+      curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.44.0/trivy_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m) -o trivy
       chmod +x trivy
+    displayName: "Download Trivy"
+
+  # 6. Run security scan with Trivy
   - script: |
       echo "Scanning Docker image for vulnerabilities..."
-      # Replace '$(Build.BuildId)' with the actual tag if needed
-      ./trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId)
-  - failOnStderr: true  # Fail pipeline if security scans find vulnerabilities (optional)
+      ./trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId) || exit 1
+    displayName: "Run Trivy Security Scan"
+    failOnStderr: true  # Fail pipeline if vulnerabilities are found
 
+  # 7. Log in to the Docker registry
   - task: Docker@2
-    displayName: Log in to Docker registry
+    displayName: "Log in to Docker registry"
     inputs:
       containerRegistry: 'Docker-service-conn' # The name of your service connection
       command: 'login'
 
+  # 8. Build Docker image
   - task: Docker@2
     displayName: "Build Docker image"
     inputs:
       command: build
       Dockerfile: Dockerfile
-      containerRegistry: 'Docker-service-conn'  # Optional but good practice
+      containerRegistry: 'Docker-service-conn'
       repository: $(DOCKER_REPO)
       tags: |
         $(Build.BuildId)
 
+  # 9. Push Docker image
   - task: Docker@2
     displayName: "Push Docker image"
     inputs:
       command: push
-      containerRegistry: 'Docker-service-conn'  # Use your configured service connection
+      containerRegistry: 'Docker-service-conn'
       repository: $(DOCKER_REPO)
       tags: |
         $(Build.BuildId)
-        
