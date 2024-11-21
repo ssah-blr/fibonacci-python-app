@@ -1,11 +1,11 @@
 trigger:
-- main  # Replace 'main' with your branch name if different
+- main
 
 pool:
   name: 'mac-self'
 
 variables:
-- group: DockerCredentials  # Reference the variable group
+- group: DockerCredentials
 - name: DOCKER_REGISTRY
   value: 'docker.io'
 - name: DOCKER_REPO
@@ -19,49 +19,44 @@ jobs:
   - task: Checkout@1
     displayName: "Checkout Code"
 
-  # 2. Install Python for linting
-  - task: UsePythonVersion@1
-    displayName: "Set up Python environment"
-    inputs:
-      versionSpec: '3.x'
-      addToPath: true
-
-  # 3. Install Python dependencies for linting
+  # 2. Install Python manually
   - script: |
-      python -m pip install --upgrade pip
+      echo "Installing Python..."
+      brew install python3 || true
+      python3 -m pip install --upgrade pip
       pip install flake8
-    displayName: "Install Python Linting Tool (flake8)"
+    displayName: "Install Python and Linting Tool"
 
-  # 4. Run Python linter
+  # 3. Run Python linter
   - script: |
       echo "Running Python Linter..."
       flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
       flake8 app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     displayName: "Run Python Linter"
-    failOnStderr: true  # Fail pipeline if linting errors occur
+    failOnStderr: true
 
-  # 5. Download and prepare Trivy for security scanning
+  # 4. Download and prepare Trivy for security scanning
   - script: |
       echo "Downloading Trivy for security scanning..."
       curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.44.0/trivy_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m) -o trivy
       chmod +x trivy
     displayName: "Download Trivy"
 
-  # 6. Run security scan with Trivy
+  # 5. Run security scan with Trivy
   - script: |
       echo "Scanning Docker image for vulnerabilities..."
       ./trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId) || exit 1
     displayName: "Run Trivy Security Scan"
-    failOnStderr: true  # Fail pipeline if vulnerabilities are found
+    failOnStderr: true
 
-  # 7. Log in to the Docker registry
+  # 6. Log in to the Docker registry
   - task: Docker@2
     displayName: "Log in to Docker registry"
     inputs:
-      containerRegistry: 'Docker-service-conn' # The name of your service connection
+      containerRegistry: 'Docker-service-conn'
       command: 'login'
 
-  # 8. Build Docker image
+  # 7. Build Docker image
   - task: Docker@2
     displayName: "Build Docker image"
     inputs:
@@ -72,7 +67,7 @@ jobs:
       tags: |
         $(Build.BuildId)
 
-  # 9. Push Docker image
+  # 8. Push Docker image
   - task: Docker@2
     displayName: "Push Docker image"
     inputs:
