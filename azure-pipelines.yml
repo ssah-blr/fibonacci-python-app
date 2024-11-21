@@ -10,20 +10,17 @@ stages:
     pool:
       name: 'mac-self'
     steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.x'  # Use Python 3.x
-        addToPath: true
-
     - script: |
-        echo "Installing pylint..."
+        echo "Verifying Python version..."
+        python --version
+        echo "Upgrading pip and installing pylint..."
         python -m pip install --upgrade pip
         pip install pylint
       displayName: "Install pylint"
 
     - script: |
         echo "Running lint checks..."
-        pylint $(System.DefaultWorkingDirectory)/src  # Update the path to your source code
+        pylint $(System.DefaultWorkingDirectory)/app
       displayName: "Python Lint Check"
 
 - stage: SecurityCheck
