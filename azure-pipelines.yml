@@ -111,5 +111,5 @@ stages:
         pip install trivy  # Install Trivy inside the venv
 
         echo "Running Docker image scan..."
-        trivy image $(DOCKER_REPO):$(Build.BuildId)
+        trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId)
       displayName: "Docker Image Security Scan (with virtual env)"
