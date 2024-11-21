@@ -1,78 +1,88 @@
 trigger:
-- main
+- main  # Replace 'main' with your branch name if different
 
-pool:
-  name: 'mac-self'
+stages:
+- stage: Lint
+  displayName: "Code Linting"
+  jobs:
+  - job: LintJob
+    displayName: "Run Lint Checks"
+    pool:
+      name: 'mac-self'
+    steps:
+    - script: |
+        echo "Running lint checks..."
+        pip install pylint
+        pylint $(System.DefaultWorkingDirectory)/src  # Update path to your source code
+      displayName: "Python Lint Check"
 
-variables:
-- group: DockerCredentials
-- name: DOCKER_REGISTRY
-  value: 'docker.io'
-- name: DOCKER_REPO
-  value: 'ssahblr/python-app'
+- stage: SecurityCheck
+  displayName: "Security Check"
+  dependsOn: Lint
+  jobs:
+  - job: SecurityCheckJob
+    displayName: "Run Security Checks"
+    pool:
+      name: 'mac-self'
+    steps:
+    - script: |
+        echo "Running security checks on dependencies..."
+        pip install bandit safety
+        bandit -r $(System.DefaultWorkingDirectory)/src  # Update path to your source code
+        safety check  # Ensure a requirements.txt or pipfile.lock exists
+      displayName: "Application Security Check"
 
-jobs:
-- job: Build_and_Push
+- stage: BuildAndPush
   displayName: "Build and Push Docker Image"
-  steps:
-  # 1. Checkout code
-  # - task: Checkout@1
-  #   displayName: "Checkout Code"
+  dependsOn: SecurityCheck
+  jobs:
+  - job: DockerBuildPushJob
+    displayName: "Build and Push Docker Image"
+    pool:
+      name: 'mac-self'
+    variables:
+    - group: DockerCredentials  # Reference the variable group
+    - name: DOCKER_REGISTRY
+      value: 'docker.io'
+    - name: DOCKER_REPO
+      value: 'ssahblr/python-app'
+    steps:
+    - task: Docker@2
+      displayName: Log in to Docker registry
+      inputs:
+        containerRegistry: 'Docker-service-conn' # The name of your service connection
+        command: 'login'
 
-  # 2. Install Python manually
-  - script: |
-      echo "Installing Python..."
-      brew install python3 || true
-      python3 -m pip install --upgrade pip
-      pip install flake8
-    displayName: "Install Python and Linting Tool"
+    - task: Docker@2
+      displayName: "Build Docker image"
+      inputs:
+        command: build
+        Dockerfile: Dockerfile
+        containerRegistry: 'Docker-service-conn'
+        repository: $(DOCKER_REPO)
+        tags: |
+          $(Build.BuildId)
 
-  # 3. Run Python linter
-  - script: |
-      echo "Running Python Linter..."
-      flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
-      flake8 app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    displayName: "Run Python Linter"
-    failOnStderr: true
+    - task: Docker@2
+      displayName: "Push Docker image"
+      inputs:
+        command: push
+        containerRegistry: 'Docker-service-conn'
+        repository: $(DOCKER_REPO)
+        tags: |
+          $(Build.BuildId)
 
-  # 4. Download and prepare Trivy for security scanning
-  - script: |
-      echo "Downloading Trivy for security scanning..."
-      curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.44.0/trivy_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m) -o trivy
-      chmod +x trivy
-    displayName: "Download Trivy"
-
-  # 5. Run security scan with Trivy
-  - script: |
-      echo "Scanning Docker image for vulnerabilities..."
-      ./trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId) || exit 1
-    displayName: "Run Trivy Security Scan"
-    failOnStderr: true
-
-  # 6. Log in to the Docker registry
-  - task: Docker@2
-    displayName: "Log in to Docker registry"
-    inputs:
-      containerRegistry: 'Docker-service-conn'
-      command: 'login'
-
-  # 7. Build Docker image
-  - task: Docker@2
-    displayName: "Build Docker image"
-    inputs:
-      command: build
-      Dockerfile: Dockerfile
-      containerRegistry: 'Docker-service-conn'
-      repository: $(DOCKER_REPO)
-      tags: |
-        $(Build.BuildId)
-
-  # 8. Push Docker image
-  - task: Docker@2
-    displayName: "Push Docker image"
-    inputs:
-      command: push
-      containerRegistry: 'Docker-service-conn'
-      repository: $(DOCKER_REPO)
-      tags: |
-        $(Build.BuildId)
+- stage: ImageScan
+  displayName: "Docker Image Scan"
+  dependsOn: BuildAndPush
+  jobs:
+  - job: ImageScanJob
+    displayName: "Run Docker Image Security Scan"
+    pool:
+      name: 'mac-self'
+    steps:
+    - script: |
+        echo "Running Docker image scan..."
+        pip install trivy  # Install Trivy or use your scanning tool
+        trivy image $(DOCKER_REPO):$(Build.BuildId)
+      displayName: "Docker Image Security Scan"
