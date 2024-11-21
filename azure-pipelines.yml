@@ -16,8 +16,8 @@ jobs:
   displayName: "Build and Push Docker Image"
   steps:
   # 1. Checkout code
-  - task: Checkout@1
-    displayName: "Checkout Code"
+  # - task: Checkout@1
+  #   displayName: "Checkout Code"
 
   # 2. Install Python manually
   - script: |
