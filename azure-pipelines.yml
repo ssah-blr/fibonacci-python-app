@@ -35,16 +35,17 @@ steps:
   inputs:
     command: build
     Dockerfile: Dockerfile
+    containerRegistry: 'Docker-service-conn'  # Optional but good practice
+    repository: $(DOCKER_REPO)
     tags: |
-      $(DOCKER_REPO):$(Build.BuildId)
+      $(Build.BuildId)
 
 # 4. Push Docker image
 - task: Docker@2
   displayName: "Push Docker image"
   inputs:
     command: push
-    containerRegistry: 'Docker-service-conn'  # Use a variable for the registry
+    containerRegistry: 'Docker-service-conn'  # Use your configured service connection
     repository: $(DOCKER_REPO)
     tags: |
       $(Build.BuildId)
-    containerRegistryEndpoint: $(DOCKER_USERNAME):$(DOCKER_PASSWORD) # Direct authentication
