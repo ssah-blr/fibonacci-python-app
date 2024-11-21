@@ -40,7 +40,7 @@ stages:
     - script: |
         echo "Running security checks on dependencies..."
         pip install bandit safety
-        bandit -r $(System.DefaultWorkingDirectory)/src  # Update path to your source code
+        bandit -r $(System.DefaultWorkingDirectory)/app  # Update path to your source code
         safety check  # Ensure a requirements.txt or pipfile.lock exists
       displayName: "Application Security Check"
 
