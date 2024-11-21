@@ -12,15 +12,17 @@ stages:
     steps:
     - script: |
         echo "Verifying Python version..."
-        python3 --version
-        echo "Upgrading pip and installing pylint..."
-        python3 -m pip install --upgrade pip
-        python3 -m pip install pylint
+        python3 --version  # Verify Python 3 is installed
+        echo "Upgrading pip..."
+        python3 -m ensurepip --upgrade  # Ensure pip is installed/upgraded
+        python3 -m pip install --upgrade pip  # Upgrade pip
+        echo "Installing pylint..."
+        python3 -m pip install pylint  # Install pylint
       displayName: "Install pylint"
 
     - script: |
         echo "Running lint checks..."
-        python3 -m pylint $(System.DefaultWorkingDirectory)/app
+        python3 -m pylint $(System.DefaultWorkingDirectory)/src  # Update with your source path
       displayName: "Python Lint Check"
 
 - stage: SecurityCheck
