@@ -38,8 +38,17 @@ stages:
       name: 'mac-self'
     steps:
     - script: |
-        echo "Running security checks on dependencies..."
-        pip install bandit safety
+        echo "Creating virtual environment..."
+        python3 -m venv venv  # Create a virtual environment
+        source venv/bin/activate  # Activate the virtual environment
+
+        echo "Upgrading pip..."
+        python3 -m pip install --upgrade pip  # Upgrade pip inside the venv
+        
+        echo "Installing security tools..."
+        pip install bandit safety  # Install security tools inside the venv
+
+        echo "Running security checks..."
         bandit -r $(System.DefaultWorkingDirectory)/app  # Update path to your source code
         safety check  # Ensure a requirements.txt or pipfile.lock exists
       displayName: "Application Security Check"
