@@ -11,41 +11,56 @@ variables:
 - name: DOCKER_REPO
   value: 'ssahblr/python-app'
 
-steps:
-# 1. Checkout code
-# - task: Checkout@1
+jobs:
+- job: Build_and_Push
+  steps:
+  - script: |
+      echo "Checking out code..."
+      # Replace with your checkout task if needed (e.g., Git Checkout)
+  - task: Python@0  # Installs Python for linting
+    displayName: Install Python for Linting
+    inputs:
+      version: 'latest'
 
-# 2. Test variable values (for debugging purposes)
-- script: |
-    echo "Testing Variables:"
-    echo "DOCKER_USERNAME: $(DOCKER_USERNAME)"
-    echo "DOCKER_PASSWORD: (hidden)"
-  displayName: "Test variable values"
+  - script: |
+      echo "Running Python Linter..."
+      cd app
+      # Replace 'python_linter.py' with your actual linter script name
+      python python_linter.py
+  - failOnStderr: true  # Fail pipeline if linting errors occur
 
-# Log in to the Docker registry using the service connection
-- task: Docker@2
-  displayName: Log in to Docker registry
-  inputs:
-    containerRegistry: 'Docker-service-conn' # The name of your service connection
-    command: 'login'
+  - script: |
+      echo "Downloading Trivy for security scanning..."
+      curl -L https://github.com/AquaSecurity/trivy/releases/download/v0.44.0/trivy_$(uname -o)_$(uname -m) -o trivy
+      chmod +x trivy
+  - script: |
+      echo "Scanning Docker image for vulnerabilities..."
+      # Replace '$(Build.BuildId)' with the actual tag if needed
+      ./trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId)
+  - failOnStderr: true  # Fail pipeline if security scans find vulnerabilities (optional)
 
-# 3. Build Docker image
-- task: Docker@2
-  displayName: "Build Docker image"
-  inputs:
-    command: build
-    Dockerfile: Dockerfile
-    containerRegistry: 'Docker-service-conn'  # Optional but good practice
-    repository: $(DOCKER_REPO)
-    tags: |
-      $(Build.BuildId)
+  - task: Docker@2
+    displayName: Log in to Docker registry
+    inputs:
+      containerRegistry: 'Docker-service-conn' # The name of your service connection
+      command: 'login'
 
-# 4. Push Docker image
-- task: Docker@2
-  displayName: "Push Docker image"
-  inputs:
-    command: push
-    containerRegistry: 'Docker-service-conn'  # Use your configured service connection
-    repository: $(DOCKER_REPO)
-    tags: |
-      $(Build.BuildId)
+  - task: Docker@2
+    displayName: "Build Docker image"
+    inputs:
+      command: build
+      Dockerfile: Dockerfile
+      containerRegistry: 'Docker-service-conn'  # Optional but good practice
+      repository: $(DOCKER_REPO)
+      tags: |
+        $(Build.BuildId)
+
+  - task: Docker@2
+    displayName: "Push Docker image"
+    inputs:
+      command: push
+      containerRegistry: 'Docker-service-conn'  # Use your configured service connection
+      repository: $(DOCKER_REPO)
+      tags: |
+        $(Build.BuildId)
+        
