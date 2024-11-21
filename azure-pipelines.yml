@@ -90,9 +90,7 @@ stages:
         command: push
         containerRegistry: 'Docker-service-conn'
         repository: $(DOCKER_REPO)
-        tags: |
-          $(DOCKER_REPO):latest
-          $(DOCKER_REPO):$(Build.BuildId)
+        tags: "$(DOCKER_REPO):latest,$(DOCKER_REPO):$(Build.BuildId)"
 
 - stage: ImageScan
   displayName: "Docker Image Scan"
