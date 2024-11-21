@@ -1,7 +1,6 @@
 trigger:
 - main  # Replace 'main' with your branch name if different
 
-stages:
 - stage: Lint
   displayName: "Code Linting"
   jobs:
@@ -10,10 +9,20 @@ stages:
     pool:
       name: 'mac-self'
     steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'  # Use Python 3.x
+        addToPath: true
+
+    - script: |
+        echo "Installing pylint..."
+        python -m pip install --upgrade pip
+        pip install pylint
+      displayName: "Install pylint"
+
     - script: |
         echo "Running lint checks..."
-        pip install pylint
-        pylint $(System.DefaultWorkingDirectory)/src  # Update path to your source code
+        pylint $(System.DefaultWorkingDirectory)/src  # Update the path to your source code
       displayName: "Python Lint Check"
 
 - stage: SecurityCheck
