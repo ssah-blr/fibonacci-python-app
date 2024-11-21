@@ -25,7 +25,7 @@ stages:
     - script: |
         echo "Running lint checks..."
         source venv/bin/activate  # Activate the virtual environment
-        pylint --disable=all --max-line-length=120 $(System.DefaultWorkingDirectory)/app  # Run pylint on your source code
+        pylint --fail-under=0 $(System.DefaultWorkingDirectory)/app  # Run pylint on your source code
       displayName: "Python Lint Check"
 
 - stage: SecurityCheck
