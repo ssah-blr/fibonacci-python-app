@@ -108,16 +108,20 @@ stages:
         echo "Creating virtual environment..."
         python3 -m venv venv  # Create a virtual environment
         source venv/bin/activate  # Activate the virtual environment
-        
+
         echo "Installing Trivy..."
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-        chmod +x ./bin/trivy
-        mv ./bin/trivy venv/bin/trivy  # Move Trivy binary to the virtual environment bin directory
+        chmod +x ./trivy
+        mv ./trivy venv/bin/trivy  # Move Trivy binary to the virtual environment bin directory
 
         echo "Exporting variables..."
-        export DOCKER_REGISTRY="${DOCKER_REGISTRY}"
-        export DOCKER_REPO="${DOCKER_REPO}"
-        export IMAGE_TAG="${BUILD_BUILDID}"
+        export DOCKER_REGISTRY="${DOCKER_REGISTRY:-docker.io}"  # Default to docker.io if not set
+        export DOCKER_REPO="${DOCKER_REPO:-ssahblr/python-app}"  # Default to ssahblr/python-app if not set
+        export IMAGE_TAG="${BUILD_BUILDID:-latest}"  # Default to 'latest' if not set
+
+        echo "DEBUG: DOCKER_REGISTRY=${DOCKER_REGISTRY}"
+        echo "DEBUG: DOCKER_REPO=${DOCKER_REPO}"
+        echo "DEBUG: IMAGE_TAG=${IMAGE_TAG}"
 
         echo "Running Docker image scan..."
         ./venv/bin/trivy image ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG}
