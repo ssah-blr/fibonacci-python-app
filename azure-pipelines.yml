@@ -111,8 +111,8 @@ stages:
         
         echo "Installing Trivy..."
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-        chmod +x trivy
-        mv trivy venv/bin/trivy  # Move Trivy binary to the virtual environment bin directory
+        chmod +x ./bin/trivy
+        mv ./bin/trivy venv/bin/trivy  # Move Trivy binary to the virtual environment bin directory
 
         echo "Exporting variables..."
         export DOCKER_REGISTRY="${DOCKER_REGISTRY}"
