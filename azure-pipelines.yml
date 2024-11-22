@@ -105,13 +105,8 @@ stages:
       name: 'mac-self'
     steps:
     - script: |
-        echo "Creating virtual environment..."
-        python3 -m venv venv  # Create a virtual environment
-        source venv/bin/activate  # Activate the virtual environment
-
         echo "Installing Trivy..."
-        pip install trivy  # Install Trivy inside the venv
-
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
         echo "Running Docker image scan..."
-        trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId)
-      displayName: "Docker Image Security Scan (with virtual env)"
+        ./trivy image $(DOCKER_REGISTRY)/$(DOCKER_REPO):$(Build.BuildId)
+      displayName: "Docker Image Security Scan"
