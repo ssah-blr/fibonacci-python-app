@@ -1,5 +1,5 @@
 trigger:
-- main  # Replace 'main' with your branch name if different
+- main
 
 stages:
 - stage: Lint
@@ -53,16 +53,16 @@ stages:
         safety check --ignore 70612  # Ensure a requirements.txt or pipfile.lock exists
       displayName: "Application Security Check"
 
-- stage: BuildAndPush
-  displayName: "Build and Push Docker Image"
+- stage: BuildDockerImage
+  displayName: "Build Docker Image"
   dependsOn: SecurityCheck
   jobs:
-  - job: DockerBuildPushJob
-    displayName: "Build and Push Docker Image"
+  - job: DockerBuildJob
+    displayName: "Build Docker Image"
     pool:
       name: 'mac-self'
     variables:
-    - group: DockerCredentials  # Reference the variable group
+    - group: DockerCredentials
     - name: DOCKER_REGISTRY
       value: 'docker.io'
     - name: DOCKER_REPO
@@ -71,7 +71,7 @@ stages:
     - task: Docker@2
       displayName: Log in to Docker registry
       inputs:
-        containerRegistry: 'Docker-service-conn' # The name of your service connection
+        containerRegistry: 'Docker-service-conn'
         command: 'login'
 
     - task: Docker@2
@@ -85,19 +85,9 @@ stages:
           latest
           $(Build.BuildId)
 
-    - task: Docker@2
-      displayName: "Push Docker image"
-      inputs:
-        command: push
-        containerRegistry: 'Docker-service-conn'
-        repository: $(DOCKER_REPO)
-        tags: |
-          latest
-          $(Build.BuildId)
-
 - stage: ImageScan
   displayName: "Docker Image Scan"
-  dependsOn: BuildAndPush
+  dependsOn: BuildDockerImage
   jobs:
   - job: ImageScanJob
     displayName: "Run Docker Image Security Scan"
@@ -126,3 +116,28 @@ stages:
         echo "Running Docker image scan..."
         ./venv/bin/trivy image ${DOCKER_REGISTRY}/${DOCKER_REPO}:${IMAGE_TAG}
       displayName: "Docker Image Security Scan with Python Virtual Environment"
+
+- stage: PushDockerImage
+  displayName: "Push Docker Image"
+  dependsOn: ImageScan
+  jobs:
+  - job: DockerPushJob
+    displayName: "Push Docker Image"
+    pool:
+      name: 'mac-self'
+    variables:
+    - group: DockerCredentials
+    - name: DOCKER_REGISTRY
+      value: 'docker.io'
+    - name: DOCKER_REPO
+      value: 'ssahblr/python-app'
+    steps:
+    - task: Docker@2
+      displayName: "Push Docker image"
+      inputs:
+        command: push
+        containerRegistry: 'Docker-service-conn'
+        repository: $(DOCKER_REPO)
+        tags: |
+          latest
+          $(Build.BuildId)
